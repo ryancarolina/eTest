@@ -1,0 +1,85 @@
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+/**
+ * Created by ryanconklin on 11/15/16.
+ */
+public class MySqlConTest {
+
+    @Test
+    public void trialBalanceItemsDbTest() {
+        String dBDavidg = "jdbc:mysql://127.0.0.1:3306/db_davidg";
+        String uName = "root";
+        String pWord = "Rt5tGmDBAF04fO0hpfIrjfk3xzsVdn8t";
+
+        try {
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            Connection con = DriverManager.getConnection(dBDavidg, uName, pWord);
+
+            Statement stmt = con.createStatement();
+
+            ResultSet rs = stmt.executeQuery("SELECT * FROM trial_balance_items WHERE trial_balance_item_id='2047'");
+
+            if(rs.next())
+
+                System.out.println(rs.getString("trial_balance_item_id")
+                        + " " + rs.getString("trial_balance_id")
+                        + " " + rs.getString("account_number"));
+
+                String trialBalanceItemId = rs.getString("trial_balance_item_id");
+                String trialBalanceId = rs.getString("trial_balance_id");
+                String accountNumber = rs.getString("account_number");
+
+                //Confirm that we are returning id 2047, trial balance id 34, and account number 10001
+                Assert.assertEquals("2047", trialBalanceItemId);
+                Assert.assertEquals("34", trialBalanceId);
+                Assert.assertEquals("10001", accountNumber);
+
+
+            con.close();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    @Test
+    public void PosLastUpdateOT(){
+        String dBDavidg = "jdbc:mysql://127.0.0.1:3306/db_davidg";
+        String uName = "root";
+        String pWord = "Rt5tGmDBAF04fO0hpfIrjfk3xzsVdn8t";
+
+        try {
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            Connection con = DriverManager.getConnection(dBDavidg, uName, pWord);
+
+            Statement stmt = con.createStatement();
+            //Targets OT Lake Murray
+//            UPDATE stores
+//            SET pos_last_update='2016-11-20 16:30:10'
+//            WHERE store_id ='825'
+            ResultSet rs = stmt.executeQuery("SELECT * FROM stores WHERE store_id=824");
+
+            if(rs.next())
+
+                System.out.println(rs.getString("pos_last_update"));
+
+            //String posLastUpdate = rs.getString("pos_last_update");
+
+            con.close();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+}
+
