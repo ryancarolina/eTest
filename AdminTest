@@ -1,0 +1,426 @@
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * Created by ryanconklin on 11/8/16.
+ */
+public class CeterusAdminTest {
+    private ToolBoxUtil toolbox;
+
+    @Before
+    public void setUp(){
+        toolbox = new ToolBoxUtil("HTML");
+    }
+
+    @Test
+    public void superAdminEndpointTest(){
+
+        addUpdateCustomMetricsTest();
+        addUpdateMetricsTest();
+        balanceSheetTest();
+        benchMarkItemsTest();
+        benchMarksTest();
+        codeMapsTest();
+        codesTest();
+        customMetricsTest();
+        exportTest();
+        mapsTest();
+        metricsTest();
+        processCloneTest();
+        processResultItemTest();
+        processResultItemsTest();
+        processTaskTestTest();
+        processTaskTest();
+        processTasksTest();
+        processTest();
+        regionTest();
+    }
+
+    @Test
+    public void adminEndpointTest(){
+
+        addUpdateCustomMetricsAdminTest();
+        addUpdateMetricsAdminTest();
+        balanceSheetAdminTest();
+        benchMarkItemsAdminTest();
+        benchMarksAdminTest();
+        customMetricsAdminTest();
+        exportAdminTest();
+        metricsAdminTest();
+        processResultItemAdminTest();
+        processResultItemsAdminTest();
+    }
+
+    @Test
+    public void clientControllerEndpointTest(){
+
+        addUpdateMetricsClientControllerTest();
+        addUpdateCustomMetricsClientControllerTest();
+        balanceSheetClientControllerTest();
+        customMetricsClientControllerTest();
+        exportClientControllerTest();
+        processResultItemClientControllerTest();
+        processResultItemsClientControllerTest();
+    }
+
+    @Test
+    public void dataEntryEndpointTest(){
+
+        balanceSheetDataEntryTest();
+        addUpdateMetricsDataEntryTest();
+        addUpdateCustomMetricsDataEntryTest();
+        customMetricsDataEntryTest();
+        processResultItemDataEntryTest();
+        processResultItemsDataEntryTest();
+    }
+
+    @After
+    public void shutDownDriver(){
+        toolbox.closeWebDriver();
+    }
+
+    private void regionTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusRegion();
+        toolbox.checkRegionText();
+    }
+
+    private void processTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusProcess();
+        toolbox.checkAutomatedProcess();
+    }
+
+    private void processTasksTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusProcessTasks();
+        toolbox.checkProcessTasks();
+    }
+
+    private void processTaskTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusProcessTask();
+        toolbox.checkTaskTest();
+    }
+
+    private void processTaskTestTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusTaskTest();
+        toolbox.checkTaskTest();
+    }
+
+    private void processResultItemsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusResultItems();
+        toolbox.checkResultItems();
+    }
+
+    private void processResultItemsAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusResultItems();
+        toolbox.checkResultItems();
+    }
+
+    private void processResultItemsClientControllerTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendClientControllerUserPassCeterus();
+        toolbox.getUrlCeterusResultItems();
+        toolbox.checkResultItems();
+    }
+
+    private void processResultItemsDataEntryTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendDataEntryUserPassCeterus();
+        toolbox.getUrlCeterusResultItems();
+        toolbox.checkResultItems();
+    }
+
+    private void processResultItemTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusProcessResultItem();
+        toolbox.checkProcessResult();
+    }
+
+    private void processResultItemAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusProcessResultItem();
+        toolbox.checkProcessResult();
+    }
+
+    private void processResultItemClientControllerTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendClientControllerUserPassCeterus();
+        toolbox.getUrlCeterusProcessResultItem();
+        toolbox.checkProcessResult();
+    }
+
+    private void processResultItemDataEntryTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendDataEntryUserPassCeterus();
+        toolbox.getUrlCeterusProcessResultItem();
+        toolbox.checkProcessResult();
+    }
+
+    private void processCloneTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusProcessClone();
+        toolbox.checkCloneProcess();
+    }
+
+    private void metricsAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusMetrics();
+        toolbox.checkAccountsText();
+    }
+
+    private void metricsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusMetrics();
+        toolbox.checkAccountsText();
+    }
+
+    private void mapsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminMaps();
+        toolbox.checkConceptAccountNumberText();
+    }
+
+    private void exportClientControllerTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendClientControllerUserPassCeterus();
+        toolbox.getUrlCeterusExport();
+        toolbox.checkExportDataText();
+    }
+
+    private void exportAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusExport();
+        toolbox.checkExportDataText();
+    }
+
+    private void exportTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusExport();
+        toolbox.checkExportDataText();
+    }
+
+    private void customMetricsDataEntryTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendDataEntryUserPassCeterus();
+        toolbox.getUrlCeterusAdminCustomMetrics();
+        toolbox.checkNewCustomMetric();
+    }
+
+    private void customMetricsClientControllerTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendClientControllerUserPassCeterus();
+        toolbox.getUrlCeterusAdminCustomMetrics();
+        toolbox.checkNewCustomMetric();
+    }
+
+    private void customMetricsAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminCustomMetrics();
+        toolbox.checkNewCustomMetric();
+    }
+
+    private void customMetricsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminCustomMetrics();
+        toolbox.checkNewCustomMetric();
+    }
+
+    private void codesTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminCodes();
+        toolbox.checkCodesText();
+    }
+
+    private void codeMapsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminCodeMaps();
+        toolbox.checkCodeMapsText();
+    }
+
+    private void benchMarksTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminBenchmark();
+        toolbox.checkBenchMakrYearText();
+    }
+
+    private void benchMarkItemsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminBenchmarkItems();
+        toolbox.checkBenchMarkItemText();
+    }
+
+    private void addUpdateCustomMetricsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateCustomMetrics();
+        toolbox.checkAddCustomMetricsText();
+    }
+
+    private void addUpdateMetricsTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateMetric();
+        toolbox.checkAddMetricDataText();
+
+    }
+
+    private void balanceSheetTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendSuperAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminBalanceSheet();
+        toolbox.checkBalanceSheetText();
+
+    }
+
+    private void benchMarksAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminBenchmark();
+        toolbox.checkBenchMakrYearText();
+    }
+
+    private void benchMarkItemsAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminBenchmarkItems();
+        toolbox.checkBenchMarkItemText();
+    }
+
+    private void addUpdateCustomMetricsAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateCustomMetrics();
+        toolbox.checkAddCustomMetricsText();
+    }
+
+    private void addUpdateMetricsAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateMetric();
+        toolbox.checkAddMetricDataText();
+
+    }
+
+    private void balanceSheetAdminTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendAdminUserPassCeterus();
+        toolbox.getUrlCeterusAdminBalanceSheet();
+        toolbox.checkBalanceSheetText();
+
+    }
+
+    private void addUpdateCustomMetricsClientControllerTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendClientControllerUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateCustomMetrics();
+        toolbox.checkAddCustomMetricsText();
+    }
+
+    private void addUpdateMetricsClientControllerTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendClientControllerUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateMetric();
+        toolbox.checkAddMetricDataText();
+
+    }
+
+    private void balanceSheetClientControllerTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendClientControllerUserPassCeterus();
+        toolbox.getUrlCeterusAdminBalanceSheet();
+        toolbox.checkBalanceSheetText();
+
+    }
+
+    private void addUpdateCustomMetricsDataEntryTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendDataEntryUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateCustomMetrics();
+        toolbox.checkAddCustomMetricsText();
+    }
+
+    private void addUpdateMetricsDataEntryTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendDataEntryUserPassCeterus();
+        toolbox.getUrlCeterusAdminAddUpdateMetric();
+        toolbox.checkAddMetricDataText();
+
+    }
+
+    private void balanceSheetDataEntryTest(){
+        toolbox.getUrlVerifyCeterus();
+        toolbox.impWait();
+        toolbox.sendDataEntryUserPassCeterus();
+        toolbox.getUrlCeterusAdminBalanceSheet();
+        toolbox.checkBalanceSheetText();
+
+    }
+}
