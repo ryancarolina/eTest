@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.LocalDate;
+
 
 /**
  * Created by ryanconklin on 11/15/16.
@@ -51,8 +53,8 @@ public class MySqlConTest {
     }
 
     @Test
-    public void PosLastUpdateOT(){
-        String dBDavidg = "jdbc:mysql://127.0.0.1:3306/db_davidg";
+    public void CheckVerifyDupeDebitCredit(){
+        String dBDavidg = "jdbc:mysql://127.0.0.1:3306/db_verify";
         String uName = "root";
         String pWord = "Rt5tGmDBAF04fO0hpfIrjfk3xzsVdn8t";
 
@@ -63,23 +65,191 @@ public class MySqlConTest {
             Connection con = DriverManager.getConnection(dBDavidg, uName, pWord);
 
             Statement stmt = con.createStatement();
-            //Targets OT Lake Murray
-//            UPDATE stores
-//            SET pos_last_update='2016-11-20 16:30:10'
-//            WHERE store_id ='825'
-            ResultSet rs = stmt.executeQuery("SELECT * FROM stores WHERE store_id=824");
 
-            if(rs.next())
+            ResultSet rs1 = stmt.executeQuery("SELECT\n" +
+                    "    stores.store_id,\n" +
+                    "    stores.store_name,\n" +
+                    "    journal_entry_id,\n" +
+                    "    j1.post_type,\n" +
+                    "    j1.description,\n" +
+                    "    j2.post_type,\n" +
+                    "    j2.description,\n" +
+                    "    account_number_map.map_account_number,\n" +
+                    "    account_number_map.account_desc\n" +
+                    "FROM\n" +
+                    "        stores\n" +
+                    "        join\n" +
+                    "        journal_entries using (store_id)\n" +
+                    "        join\n" +
+                    "    journal_entries_distribution_lines j1 using (journal_entry_id)\n" +
+                    "        JOIN\n" +
+                    "    journal_entries_distribution_lines j2 USING (journal_entry_id, account_number_map_id)\n" +
+                    "        join\n" +
+                    "    account_number_map using (account_number_map_id)\n" +
+                    "WHERE\n" +
+                    "    j1.account_number_map_id = j2.account_number_map_id\n" +
+                    "        AND j1.post_type = 'Debit'\n" +
+                    "        AND j2.post_type = 'Credit'");
+            //Set the alert
+            Boolean alert = false;
 
-                System.out.println(rs.getString("pos_last_update"));
+            //DB results are empty
+            if(!rs1.isBeforeFirst()){
+                System.out.println("No duplicates found");
+                alert = false;
+            }
 
-            //String posLastUpdate = rs.getString("pos_last_update");
+            //DB results are NOT empty
+            if(rs1.isBeforeFirst()) {
+                System.out.println("Duplicates found!!");
+                alert = true;
+                while (rs1.next())
+                    System.out.println(rs1.getString("store_name"));
+            }
 
+            //Assert if there are dupes or not
+            //Assert.assertEquals(false, alert);
+
+            //Close the db conneciton
             con.close();
 
         } catch (Exception e) {
             System.out.println(e);
         }
+    }
+
+
+
+    @SuppressWarnings("Since15")
+    @Test
+    //Return date and credit card clearing amount for target stores
+    public void CheckVerifyStoreCreditCardClearing(){
+        String dBDavidg = "jdbc:mysql://127.0.0.1:3306/db_verify";
+        String uName = "root";
+        String pWord = "Rt5tGmDBAF04fO0hpfIrjfk3xzsVdn8t";
+
+        LocalDate today = LocalDate.now();
+        LocalDate yesterDay = today.minusDays(1);
+
+        //824 OT Test, 826 Art of Salsa Test, 860 OT Charleston, 858 OT Chattanooga
+        int[] targetStoreIDs = {824,826,860,858};
+        int storeIdArray = 0;
+
+        //Loop through target store array and query DB
+        for(int i=0; i<targetStoreIDs.length; i++){
+            storeIdArray = targetStoreIDs[i];
+            System.out.println(targetStoreIDs[i]);
+
+            try {
+
+                Class.forName("com.mysql.cj.jdbc.Driver");
+
+                Connection con = DriverManager.getConnection(dBDavidg, uName, pWord);
+
+                Statement stmt = con.createStatement();
+
+                ResultSet rs1 = stmt.executeQuery("SELECT\n" +
+                        "    DATE(transaction_date) AS date,\n" +
+                        "    'deposits' AS sales_deposits,\n" +
+                        "    'credit' AS cash_credit,\n" +
+                        "    SUM(amount) AS amount,\n" +
+                        "    NULL as description\n" +
+                        "FROM\n" +
+                        "    journal_entries\n" +
+                        "        JOIN\n" +
+                        "    journal_entries_distribution_lines USING (journal_entry_id)\n" +
+                        "        JOIN\n" +
+                        "    account_number_map USING (account_number_map_id)\n" +
+                        "WHERE\n" +
+                        "    store_id ='"+storeIdArray+"'\n" +
+                        "        AND transaction_date ='"+yesterDay+"'\n" +
+                        "        AND post_type = 'Credit'\n" +
+                        "        AND account_desc = 'Credit Card Clearing'\n" +
+                        "        AND entry_made_by IN ('Journal Entry BOT' , 'Financial Journal BOT', 'POS Journal Entry BOT')\n" +
+                        "GROUP BY date\n" +
+                        "UNION ALL SELECT\n" +
+                        "    DATE(transaction_date) AS date,\n" +
+                        "    'sales' AS sales_deposits,\n" +
+                        "    'credit' AS cash_credit,\n" +
+                        "    SUM(amount) AS amount,\n" +
+                        "    NULL as description\n" +
+                        "FROM\n" +
+                        "    journal_entries\n" +
+                        "        JOIN\n" +
+                        "    journal_entries_distribution_lines USING (journal_entry_id)\n" +
+                        "        JOIN\n" +
+                        "    account_number_map USING (account_number_map_id)\n" +
+                        "WHERE\n" +
+                        "    store_id ='"+storeIdArray+"'\n" +
+                        "        AND transaction_date ='"+yesterDay+"'\n" +
+                        "        AND post_type = 'Debit'\n" +
+                        "        AND account_desc = 'Credit Card Clearing'\n" +
+                        "        AND entry_made_by IN ('Journal Entry BOT' , 'Financial Journal BOT', 'POS Journal Entry BOT')\n" +
+                        "GROUP BY date\n" +
+                        "UNION ALL SELECT\n" +
+                        "    DATE(transaction_date) AS date,\n" +
+                        "    'sales_adjustment' AS sales_deposits,\n" +
+                        "    'credit' AS cash_credit,\n" +
+                        "    SUM(amount) AS amount,\n" +
+                        "    group_concat(description SEPARATOR '</br>') as description\n" +
+                        "\n" +
+                        "FROM\n" +
+                        "    journal_entries\n" +
+                        "        JOIN\n" +
+                        "    journal_entries_distribution_lines USING (journal_entry_id)\n" +
+                        "        JOIN\n" +
+                        "    account_number_map USING (account_number_map_id)\n" +
+                        "WHERE\n" +
+                        "    store_id ='"+storeIdArray+"'\n" +
+                        "        AND transaction_date ='"+yesterDay+"'\n" +
+                        "        AND account_desc = 'Credit Card Clearing'\n" +
+                        "        AND post_type = 'Credit'\n" +
+                        "        AND entry_made_by NOT IN ('Journal Entry BOT' , 'Financial Journal BOT', 'POS Journal Entry BOT')\n" +
+                        "GROUP BY date\n" +
+                        "UNION ALL SELECT\n" +
+                        "    DATE(transaction_date) AS date,\n" +
+                        "    'deposit_adjustment' AS sales_deposits,\n" +
+                        "    'credit' AS cash_credit,\n" +
+                        "    SUM(amount) AS amount,\n" +
+                        "    group_concat(description SEPARATOR '</br>') as description\n" +
+                        "FROM\n" +
+                        "    journal_entries\n" +
+                        "        JOIN\n" +
+                        "    journal_entries_distribution_lines USING (journal_entry_id)\n" +
+                        "        JOIN\n" +
+                        "    account_number_map USING (account_number_map_id)\n" +
+                        "WHERE\n" +
+                        "    store_id ='"+storeIdArray+"'\n" +
+                        "        AND transaction_date ='"+yesterDay+"'\n" +
+                        "        AND account_desc = 'Credit Card Clearing'\n" +
+                        "        AND post_type = 'Debit'\n" +
+                        "        AND entry_made_by NOT IN ('Journal Entry BOT' , 'Financial Journal BOT', 'POS Journal Entry BOT')\n" +
+                        "GROUP BY date\n");
+
+                //DB results are empty
+                if(!rs1.isBeforeFirst()){
+                    System.out.println("No Journal Results Found"+"\n");
+                    //alert = false;
+                }
+
+                //DB results are NOT empty
+                if(rs1.isBeforeFirst()) {
+                    System.out.println("Journal Results Found");
+                    //alert = true;
+                    while (rs1.next())
+                        System.out.println(rs1.getString("date")
+                                + " " + rs1.getString("amount"));
+                }
+
+                //Close the db conneciton
+                con.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+
+
     }
 }
 
