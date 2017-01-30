@@ -1,0 +1,35 @@
+public ToolBoxUtil(String browserType) {
+        if (browserType.equals("CHROME")) {
+
+            try {
+                System.setProperty("webdriver.chrome.driver", "/Users/ryanconklin/development/chromedriver");
+                driver = new ChromeDriver();
+            } catch (Exception e) {
+                System.out.println("Error during Chrome Test Setup" + e.toString());
+            }
+
+        } else if (browserType.equals("FIREFOX")) {
+            try {
+                System.setProperty("webdriver.firefox.driver", "/Users/ryanconklin/development/geckodriver");
+                driver = new FirefoxDriver();
+            } catch (Exception e) {
+                System.out.println("Error during Firefox Test Setup" + e.toString());
+            }
+
+        } else if (browserType.equals("HTML")) {
+            try {
+                driver = new HtmlUnitDriver(BrowserVersion.BEST_SUPPORTED,true) {
+                    //HtmlUnitDriver by default logs all notices, warnings, script errors.
+                    @Override
+                    protected WebClient newWebClient(BrowserVersion version) {
+                            WebClient webClient = super.newWebClient(version);
+                            webClient.getOptions().setThrowExceptionOnScriptError(false);
+                            return webClient;
+                        }
+                    };
+
+                } catch(Exception e){
+                    System.out.println("Error during HtmlUnit Test Setup" + e.toString());
+                }
+            }
+        }
