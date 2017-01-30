@@ -20,8 +20,6 @@ public class CeterusApiTest{
     String targetVerify403 =  "https://verify.ceterusinsight.com/admin";
     String targetVerifyHello = "https://verify.ceterusinsight.com/api/hello/RyanTestVerify";
     String targetVerifyLogin = "https://verify.ceterusinsight.com/api/login";
-    String targetLiveApiLogin = "https://ceterusinsight.com/api/login";
-    String targetLiveHello = "https://ceterusinsight.com/api/hello/RyanTestLive";
     String targetTestHello = "https://test.ceterusinsight.com/api/hello/RyanTestTest";
     String targetVerifyStoreId = "https://verify.ceterusinsight.com/api/store/0121/identity";
     String targetVerifyGraphProfitandLoss = "https://verify.ceterusinsight.com/api/graph/profitandloss/store/0121/2016-06/2016-07";
@@ -37,10 +35,43 @@ public class CeterusApiTest{
     String targetVerifyReportUserIdSalesSummary = "https://verify.ceterusinsight.com/api/report/sales/user/348/stores/summary/2016-06-15";
     String targetVerifyReportUserIdStoreIdCashSummary = "https://verify.ceterusinsight.com/api/report/cash/user/348/store/0121/summary/2016-06-15";
     String targetVerifyReportUserIdStoreIdSalesSummary = "https://verify.ceterusinsight.com/api/report/sales/user/348/store/0121/summary/2016-06-15";
+    String targetVerifyConceptId = "https://verify.ceterusinsight.com/api/concept/2/identity";
+    String targetVerifyUpdateUserProfile = "https://verify.ceterusinsight.com/api/user/348/identity/update";
+    String targetVerifyProfitLossLineItem = "https://verify.ceterusinsight.com/api/financial/store/824/profitandloss/lineitems/revenue/2016-12";
+    String targetVerifyProfitLossBenchMarkState = "https://verify.ceterusinsight.com/api/financial/user/348/profitandloss/lineitems/revenue/benchmark/state/2016-11";
+    String targetVerifyProfitLossTotalBenchMarkState = "https://verify.ceterusinsight.com/api/financial/user/348/profitandloss/total/revenue/benchmark/state/2016-12";
+    String targetVerifyProfitLossCompare = "https://verify.ceterusinsight.com/api/financial/store/824/profitandloss/lineitems/revenue/2016-10/2016-11/compare/2016-11/2016-12\n";
+    String targetVerifyProfitLossTotalCompare = "https://verify.ceterusinsight.com/api/financial/store/0121/profitandloss/total/revenue/2016-06/2016-07/compare/2016-07/2016-08";
+
+    String targetLive200 = "https://ceterusinsight.com/login.php";
+    String targetLive404 = "https://ceterusinsight.com/login1.php";
+    String targetLive403 =  "https://ceterusinsight.com/admin";
+    String targetLiveLogin = "https://ceterusinsight.com/api/login";
+    String targetLiveApiLogin = "https://ceterusinsight.com/api/login";
+    String targetLiveHello = "https://ceterusinsight.com/api/hello/RyanTestLive";
+    String targetLiveStoreId = "https://ceterusinsight.com/api/store/0121/identity";
+    String targetLiveGraphProfitandLoss = "https://ceterusinsight.com/api/graph/profitandloss/store/0121/2016-06/2016-07";
+    String targetLiveGraphIdRevenue = "https://ceterusinsight.com/api/graph/revenue/store/0121/2016-06/2016-07";
+    String targetLiveGraphIdEbitda = "https://ceterusinsight.com/api/graph/ebitda/store/0121/2016-06/2016-07";
+    String targetLiveGraphIdPersonnel = "https://ceterusinsight.com/api/graph/personnel/store/0121/2016-06/2016-07";
+    String targetLiveGraphIdFacility = "https://ceterusinsight.com/api/graph/facility/store/0121/2016-06/2016-07";
+    String targetLiveGraphIdMarketing = "https://ceterusinsight.com/api/graph/marketing/store/0121/2016-06/2016-07";
+    String targetLiveGraphIdGeneralExpenses = "https://ceterusinsight.com/api/graph/general/store/0121/2016-06/2016-07";
+    String targetLiveUserIdStores = "https://ceterusinsight.com/api/user/348/stores";
+    String targetLiveUserIdIdentity = "https://ceterusinsight.com/api/user/348/identity";
+    String targetLiveReportUserIdCashSummary = "https://ceterusinsight.com/api/report/cash/user/348/stores/summary/2016-06-15";
+    String targetLiveReportUserIdSalesSummary = "https://ceterusinsight.com/api/report/sales/user/348/stores/summary/2016-06-15";
+    String targetLiveReportUserIdStoreIdCashSummary = "https://ceterusinsight.com/api/report/cash/user/348/store/0121/summary/2016-06-15";
+    String targetLiveReportUserIdStoreIdSalesSummary = "https://ceterusinsight.com/api/report/sales/user/348/store/0121/summary/2016-06-15";
+    String targetLiveConceptId = "https://ceterusinsight.com/api/concept/2/identity";
+    String targetLiveUpdateUserProfile = "https://ceterusinsight.com/api/user/348/identity/update";
+    String targetLiveProfitLossLineItem = "https://ceterusinsight.com/api/financial/store/824/profitandloss/lineitems/revenue/2016-12";
+
+
 
     //TODO Write connection to DB to insert data values for testing trial_balance_items
 
-    public RequestSpecification getToken(){
+    public RequestSpecification getTokenVerify(){
         //Send hash map with login creds.
         Map<String, String> emailPass = new HashMap<String, String>();
         emailPass.put("email", "ryanc@ceterus.com");
@@ -66,6 +97,117 @@ public class CeterusApiTest{
         return retVal;
     }
 
+    public RequestSpecification getTokenLive(){
+        //Send hash map with login creds.
+        Map<String, String> emailPass = new HashMap<String, String>();
+        emailPass.put("email", "ryanc@ceterus.com");
+        emailPass.put("password", "rR19006766");
+        //Format login creds to JSON and attempt to login
+        Response tokenResponse =
+
+                given()
+                        .relaxedHTTPSValidation()
+                        .contentType("application/json")
+                        .body(emailPass)
+                        .when().post(targetVerifyLogin).then().log().all()
+                        .statusCode(200).extract().response();
+        //Parse response and get JSON Web Token
+        String token = tokenResponse.getBody().jsonPath().getString("token");
+        //Build header with JSON Web Token
+        RequestSpecBuilder builder = new RequestSpecBuilder();
+        builder.addHeader("Authorization", "Bearer " + token);
+        RequestSpecification requestSpec = builder.build();
+
+        RequestSpecification retVal = requestSpec;
+        //Return the token value
+        return retVal;
+    }
+
+    @Test
+    public void getVerifyConceptId(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenVerify())
+                .when()
+                .get(targetVerifyConceptId)
+                .then().log().all().statusCode(200);
+    }
+
+    ///financial/user/{user_id}/profitandloss/lineitems/{type}/benchmark/{benchmark_type}/{date}
+    @Test
+    public void getVerifyProfitLossBenchMarkState(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenVerify())
+                .when()
+                .get(targetVerifyProfitLossBenchMarkState)
+                .then().log().all().statusCode(200);
+    }
+
+    ///financial/store/{store_id}/profitandloss/total/{type}/{date1_begin}/{date1_end}/compare/{date2_begin}/{date2_end}
+    @Test
+    public void getVerifyProfitLossTotalCompare(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenVerify())
+                .when()
+                .get(targetVerifyProfitLossTotalCompare)
+                .then().log().all().statusCode(200);
+    }
+
+    ///financial/store/{store_id}/profitandloss/lineitems/{type}/{date1_begin}/{date1_end}/compare/{date2_begin}/{date2_end}
+    @Test
+    public void getVerifyProfitLossCompare(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenVerify())
+                .when()
+                .get(targetVerifyProfitLossCompare)
+                .then().log().all().statusCode(200);
+    }
+
+    ///financial/user/{user_id}/profitandloss/total/{type}/benchmark/{benchmark_type}/{date}
+    @Test
+    public void getVerifyProfitLossTotalBenchMarkState(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenVerify())
+                .when()
+                .get(targetVerifyProfitLossTotalBenchMarkState)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveConceptId(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveConceptId)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    //TODO Not returning expected data
+    public void getVerifyProfitLossLineItem(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenVerify())
+                .when()
+                .get(targetVerifyProfitLossLineItem)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    //TODO Not returning expected data
+    public void getLiveProfitLossLineItem(){
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveProfitLossLineItem)
+                .then().log().all().statusCode(200);
+    }
 
     @Test
     public void getVerifyReportUserIdStoresIdSales(){
@@ -73,10 +215,22 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyReportUserIdStoreIdSalesSummary)
-                .then().log().all().statusCode(206);
+                .then().log().all().statusCode(204);
+    }
+
+    @Test
+    public void getLiveReportUserIdStoresIdSales(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveReportUserIdStoreIdSalesSummary)
+                .then().log().all().statusCode(204);
     }
 
     @Test
@@ -85,10 +239,22 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyReportUserIdStoreIdCashSummary)
-                .then().log().all().statusCode(206);
+                .then().log().all().statusCode(204);
+    }
+
+    @Test
+    public void getLiveReportUserIdStoreIdCash(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveReportUserIdStoreIdCashSummary)
+                .then().log().all().statusCode(204);
     }
 
     @Test
@@ -97,10 +263,22 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyReportUserIdSalesSummary)
-                .then().log().all().statusCode(206);
+                .then().log().all().statusCode(204);
+    }
+
+    @Test
+    public void getLiveReportUserIdSales(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveReportUserIdSalesSummary)
+                .then().log().all().statusCode(204);
     }
 
     @Test
@@ -109,10 +287,22 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyReportUserIdCashSummary)
-                .then().log().all().statusCode(206);
+                .then().log().all().statusCode(204);
+    }
+
+    @Test
+    public void getLiveReportUserIdCash(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveReportUserIdCashSummary)
+                .then().log().all().statusCode(204);
     }
 
     @Test
@@ -121,9 +311,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyUserIdIdentity)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveUserIdIdentity(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveUserIdIdentity)
                 .then().log().all().statusCode(200);
     }
 
@@ -133,9 +335,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyUserIdStores)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveUserIdStores(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveUserIdStores)
                 .then().log().all().statusCode(200);
     }
 
@@ -145,9 +359,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyGraphIdGeneralExpenses)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveGraphIdGeneralExpenses(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveGraphIdGeneralExpenses)
                 .then().log().all().statusCode(200);
     }
 
@@ -157,9 +383,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyGraphIdMarketing)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveGraphIdMarketing(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveGraphIdMarketing)
                 .then().log().all().statusCode(200);
     }
 
@@ -169,9 +407,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyGraphIdFacility)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveGraphIdFacility(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveGraphIdFacility)
                 .then().log().all().statusCode(200);
     }
 
@@ -181,9 +431,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyGraphIdPersonnel)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void setTargetLiveGraphIdPersonnel(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveGraphIdPersonnel)
                 .then().log().all().statusCode(200);
     }
 
@@ -193,9 +455,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyGraphIdEbitda)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveGraphIdEbitda(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveGraphIdEbitda)
                 .then().log().all().statusCode(200);
     }
 
@@ -205,9 +479,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyGraphIdRevenue)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveGraphIdRevenue(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveGraphIdRevenue)
                 .then().log().all().statusCode(200);
     }
 
@@ -217,9 +503,21 @@ public class CeterusApiTest{
         //Make target API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyGraphProfitandLoss)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveGraphProfitandLoss(){
+
+        //Make target API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveGraphProfitandLoss)
                 .then().log().all().statusCode(200);
     }
 
@@ -229,10 +527,72 @@ public class CeterusApiTest{
         //Make API call with new header containing JSON Web Token
         given()
                 .relaxedHTTPSValidation()
-                .spec(getToken())
+                .spec(getTokenVerify())
                 .when()
                 .get(targetVerifyStoreId)
                 .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void getLiveStoreIdWithToken() {
+
+        //Make API call with new header containing JSON Web Token
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .when()
+                .get(targetLiveStoreId)
+                .then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void updateUserProfile(){
+        Map<String, String> infoString = new HashMap<String, String>();
+        infoString.put("title", "TEST");
+        infoString.put("first_name", "RyanTest");
+        infoString.put("last_name", "ConklinTest");
+        infoString.put("phone_number", "555-Test");
+        infoString.put("address", "321 Test");
+        infoString.put("city", "Testtown");
+        infoString.put("state", "sc");
+        infoString.put("zip", "29492");
+        infoString.put("date_of_birth", "1984-06-15");
+        infoString.put("group_name", "Test Group");
+        infoString.put("group_logo", "string");
+
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenVerify())
+                .contentType("application/json")
+                .body(infoString)
+                .when().post(targetVerifyUpdateUserProfile).then()
+                .log().all()
+                .statusCode(200);
+    }
+
+    @Test
+    public void updateUserProfileLive(){
+        Map<String, String> infoString = new HashMap<String, String>();
+        infoString.put("title", "TEST");
+        infoString.put("first_name", "RyanTest");
+        infoString.put("last_name", "ConklinTest");
+        infoString.put("phone_number", "555-Test");
+        infoString.put("address", "321 Test");
+        infoString.put("city", "Testtown");
+        infoString.put("state", "sc");
+        infoString.put("zip", "29492");
+        infoString.put("date_of_birth", "1984-06-15");
+        infoString.put("group_name", "Test Group");
+        infoString.put("group_logo", "string");
+
+        given()
+                .relaxedHTTPSValidation()
+                .spec(getTokenLive())
+                .contentType("application/json")
+                .body(infoString)
+                .when().post(targetLiveUpdateUserProfile).then()
+                .log().all()
+                .statusCode(200);
     }
 
     @Test
@@ -250,6 +610,20 @@ public class CeterusApiTest{
     }
 
     @Test
+    public void loginLive401(){
+        Map<String, String> emailPass = new HashMap<String, String>();
+        emailPass.put("email", "ryan@ceterus.com");
+        emailPass.put("password", "rR19006766");
+
+        given()
+                .relaxedHTTPSValidation()
+                .contentType("application/json")
+                .body(emailPass)
+                .when().post(targetLiveLogin).then()
+                .statusCode(401);
+    }
+
+    @Test
     public void loginVerify(){
         Map<String, String> emailPass = new HashMap<String, String>();
         emailPass.put("email", "ryanc@ceterus.com");
@@ -260,6 +634,20 @@ public class CeterusApiTest{
                 .contentType("application/json")
                 .body(emailPass)
                 .when().post(targetVerifyLogin).then().log().all()
+                .statusCode(200);
+    }
+
+    @Test
+    public void loginLive(){
+        Map<String, String> emailPass = new HashMap<String, String>();
+        emailPass.put("email", "ryanc@ceterus.com");
+        emailPass.put("password", "rR19006766");
+
+        given()
+                .relaxedHTTPSValidation()
+                .contentType("application/json")
+                .body(emailPass)
+                .when().post(targetLiveLogin).then().log().all()
                 .statusCode(200);
     }
 
@@ -284,13 +672,33 @@ public class CeterusApiTest{
     }
 
     @Test
+    public void pingLiveTest(){
+        //.log().all() to turn on logging
+        given().relaxedHTTPSValidation().when().get(targetLive200).then()
+                .statusCode(200);
+
+    }
+
+    @Test
     public void invalidLoginPath(){
         given().relaxedHTTPSValidation().when().get(targetVerify404).then().statusCode(404);
     }
 
     @Test
+    public void invalidLoginPathLive(){
+        given().relaxedHTTPSValidation().when().get(targetLive404).then().statusCode(404);
+    }
+
+    @Test
     public void confirmLoginPage(){
         given().relaxedHTTPSValidation().get(targetVerify200).then()
+                .body(containsString("2016  Ceterus. All rights reserved"))
+                .statusCode(200);
+    }
+
+    @Test
+    public void confirmLoginPageLive(){
+        given().relaxedHTTPSValidation().get(targetLive200).then()
                 .body(containsString("2016  Ceterus. All rights reserved"))
                 .statusCode(200);
     }
@@ -302,8 +710,16 @@ public class CeterusApiTest{
     }
 
     @Test
+    public void confirmForbiddenLive(){
+        given().relaxedHTTPSValidation().when()
+                .get(targetLive403).then().statusCode(403);
+    }
+
+    @Test
     public void methodNotAllowed(){
         given().relaxedHTTPSValidation().get(targetLiveApiLogin).then().log().all()
                 .body(containsString("Method not allowed. Must be one of: "));
     }
+
+
 }
