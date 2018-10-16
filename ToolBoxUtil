@@ -2,85 +2,404 @@
  * Created by ryanconklin on 10/25/16.
  */
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.WebClient;
+import org.apache.commons.io.FileUtils;
+import org.jboss.aerogear.security.otp.Totp; //2FA Support
+import org.junit.Assert;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.LocalFileDetector;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import javax.annotation.Nullable;
+import java.io.File;
+import java.net.URL;
+import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 
 public class ToolBoxUtil {
     private static WebDriver driver;
 
-    String superAdminUserName = "ryanc@ceterus.com";
-    String superAdminPassword = "rR19006766";
-    String adminUsername = "test@test.com";
-    String admingPassword = "@dm!n73$t";
-    String clientControllerUsername = "cct@test.com";
-    String clientControllerPassword = "cl!3n7Contr0ll3r73$t";
+//User accounts
+    String superAdminUserName = "";
+    String superAdminPassword = "";
+    String adminUsername = "";
+    String admingPassword = "";
+    String clientControllerUsername = "";
+    String clientControllerPassword = "";
     String dataEntryUsername = "det@test.com";
-    String dataEntryPassword = "d@7@7e$t";
-    String clientUserName = "client.ryanc@ceterus.com";
-    String clientPassword = "rR19006766";
+    String dataEntryPassword = "";
+    String clientUserName = "";
+    String clientPassword = "";
+    String clientUserName2 = "ct@mail.com";
+    String clientPassword2 = "";
+    String PosVendorKeyOT = "";
+    String PosVendorSecretOT = "";
+    String PosVendorCustomerIdOT = "";
+    String demoUserName = "demo@ceterus.com";
+    String demoUserPassword = "";
+    String i9DemoUSerName = "i9submitdemo@ceterus.com";
+    String i9DemoPassword = "";
+    String nonCeterusUserName = "non-edge@test.com";
+    String nonCeterusPassword = "";
+    String forgotPasswordUserName = "test@test.com";
+    String sauceUsername = "YOUR SAUCE USER NAME";
+    String sauceAccessKey = "YOUR SAUCE ACCESS KEY";
+    String sauceURL = "https://" + sauceUsername + ":" + sauceAccessKey + "@ondemand.saucelabs.com:443/wd/hub";
+    String osName = null;
 
+//Target URLs
+    String urlVerify = "http://verify.ceterusinsight.com/login.php";
+    String urlVerify2 = "http://verify2.ceterusinsight.com/login.php";
+    String urlLive = "http://ceterusinsight.com/login.php";
+    String urlLiveEdge = "https://edge.ceterus.com/";
+    String urlLiveAdmin = "http://admin.ceterus.com/login.php";
+    String urlVerifyWeb = "http://verify-web.ceterusinsight.com";
+    String urlRyanc = "https://ryanc.ceterusinsight.com/login.php";
+    String urlKellidWeb = "https://kellid-web.ceterusinsight.com/";
+    String urlCurreyt = "https://curreyt.ceterusinsight.com/login.php";
+    private String controller;
 
-    public ToolBoxUtil(String browserType){
-        if(browserType.equals("CHROME")){
+    @SuppressWarnings("Since15")
+    public ToolBoxUtil(String browserType) {
+        if (browserType.equals("CHROME")) {
 
-            try{
-                System.setProperty("webdriver.chrome.driver", "/Users/ryanconklin/development/chromedriver");
+            try {
+                //ChromeDriver MAC ver 2.33, Updated 11/16/2017
+                //ChromeDriver WIN ver 2.34, Updated 12/12/2017
+                if (getOsName().contains("Windows")) {
+                    System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/src/test/resources/chromedriver.exe");
+                } else if (getOsName().contains("Mac OS X")) {
+                    System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/src/test/resources/chromedriver");
+                }
                 driver = new ChromeDriver();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 System.out.println("Error during Chrome Test Setup" + e.toString());
             }
+            //This is for SaucesLabs
+        } else if (browserType.equals("REMOTE CHROME")) {
+            try {
+                System.out.println("REMOTE CHROME");
+                DesiredCapabilities caps = DesiredCapabilities.chrome();
+                caps.setCapability("platform", "Windows 10");
+                caps.setCapability("version", "latest");
+                caps.setCapability("screenResolution", "1280x1024");
+                caps.setCapability("name", "core "+ getTimeStamp());
+                caps.setCapability("extendedDebugging", "false");//SauceLabs known 504 gateway error with xDebugging enabled
+                caps.setCapability("idleTimeout", "1000");
+                caps.setCapability("chromedriverVersion", "2.39");
+                //caps.setCapability("tunnelIdentifier", "ceterus1");
+                //noinspection deprecation
+                //macOS 10.12
+                driver = new RemoteWebDriver(new URL(sauceURL), caps);
 
-        } else if(browserType.equals("FIREFOX")){
-            try{
-                System.setProperty("webdriver.firefox.driver", "/Users/ryanconklin/development/geckodriver");
-                driver = new FirefoxDriver();
-            } catch(Exception e){
-                System.out.println("Error during Firefox Test Setup" + e.toString());
+            } catch (Exception e) {
+                System.out.println("Error during Remote Test Setup " + e.toString());
             }
-
-        } else if(browserType.equals("HTML")){
-            try{
-                driver = new HtmlUnitDriver(true);
-            } catch(Exception e){
+        } else if (browserType.equals("HTML")) {
+            try {
+                driver = new HtmlUnitDriver(BrowserVersion.BEST_SUPPORTED, true) {
+                    //HtmlUnitDriver by default logs all notices, warnings, script errors.
+                    @Override
+                    protected WebClient newWebClient(BrowserVersion version) {
+                        WebClient webClient = super.newWebClient(version);
+                        webClient.getOptions().setThrowExceptionOnScriptError(false);
+                        return webClient;
+                    }
+                };
+            } catch (Exception e) {
                 System.out.println("Error during HtmlUnit Test Setup" + e.toString());
             }
+        } else if (browserType.equals("REMOTE CHROME 2")) {
+            try {
+                System.out.println("REMOTE CHROME 2");
+                DesiredCapabilities caps = DesiredCapabilities.chrome();
+                caps.setCapability("platform", "Windows 10");
+                caps.setCapability("version", "latest");
+                caps.setCapability("screenResolution", "1280x1024");
+                caps.setCapability("name", "core " + getTimeStamp());
+                //caps.setCapability("tunnelIdentifier", "ceterus1");
+
+                driver = new RemoteWebDriver(new URL(sauceUrlKelli), caps);
+            } catch (Exception e) {
+                System.out.println("Error during Remote Test Setup " + e.toString());
+            }
+        } else if (browserType.equals("REMOTE CHROME 3")) {
+            try {
+                System.out.println("REMOTE CHROME 3");
+                DesiredCapabilities caps = DesiredCapabilities.chrome();
+                caps.setCapability("platform", "Windows 10");
+                caps.setCapability("version", "latest");
+                caps.setCapability("screenResolution", "1280x1024");
+                caps.setCapability("name", "core " + getTimeStamp());
+                //caps.setCapability("tunnelIdentifier", "ceterus1");
+
+                driver = new RemoteWebDriver(new URL(sauceUrlCurreyt), caps);
+            } catch (Exception e) {
+                System.out.println("Error during Remote Test Setup " + e.toString());
+            }
+        } else if (browserType.equals("REMOTE EDGE")) {
+            try {
+                System.out.println("REMOTE EDGE");
+                DesiredCapabilities caps = DesiredCapabilities.edge();
+                caps.setCapability("platform", "Windows 10");
+                caps.setCapability("version", "14.14393");
+                caps.setCapability("screenResolution", "1280x1024");
+                caps.setCapability("name", "EDGE " + getTimeStamp());
+                //caps.setCapability("tunnelIdentifier", "ceterus1");
+
+                driver = new RemoteWebDriver(new URL(sauceURL), caps);
+            } catch (Exception e) {
+                System.out.println("Error during Remote Test Setup " + e.toString());
+            }
+        } else if (browserType.equals("REMOTE SAFARI")) {
+            try {
+                System.out.println("REMOTE SAFARI");
+                DesiredCapabilities caps = DesiredCapabilities.safari();
+                caps.setCapability("platform", "macOS 10.12");
+                caps.setCapability("version", "11.0");
+                //TODO Safari unable to set screen res
+                //caps.setCapability("screenResolution", "1280x1024");
+                caps.setCapability("name", "EDGE " + getTimeStamp());
+                //caps.setCapability("tunnelIdentifier", "ceterus1");
+                //noinspection deprecation
+                //macOS 10.12
+                driver = new RemoteWebDriver(new URL(sauceURL), caps);
+            } catch (Exception e) {
+                System.out.println("Error during Remote Test Setup " + e.toString());
+            }
+
         }
     }
 
-    //Click the Reset Password link on client side
-    public void clickResetPassword(){
-        driver.findElement(By.partialLinkText("Reset Password")).click();
+    //Remote file upload, include this along with the normal local file path.
+    public void remoteFileUpload(){
+        getRemoteDriver().setFileDetector(new LocalFileDetector());
     }
 
-    //Click the Balance Sheet link on client side
-    public void clickBalanceSheet(){
-        driver.findElement(By.xpath("//*[@id=\"ubs\"]/a")).click();
+    //Used by twoFactorCeterusLogin, which is used by ALL logIn methods
+    public String testOTP(){
+        String otpKeyStr = "YOUR 2FA KEY";
+
+        Totp totp = new Totp(otpKeyStr);
+        String twoFactorCode = totp.now();
+
+        System.out.println(twoFactorCode);
+
+        return twoFactorCode;
     }
 
-    //Click the Dashboard link on client side
-    public void clickDashBoard(){
-        driver.findElement(By.xpath("//*[@id=\"udb\"]/a")).click();
+    //2FA Ceterus ADMIN login, this is within all the logIn methods
+    public void twoFactorCeterusLogin(){
+
+            clickCssSelector("body > div > form > button");
+
+            waitForElementVisibleId("identifierId", 120);
+            getIdSendKeys("identifierId", "ryanc@ceterus.com");
+
+            waitForElementVisibleId("identifierNext", 120);
+            clickId("identifierNext");
+
+            waitForElementVisibleName("password", 120);
+            getNameSendKeys("password", "rR19006766");
+
+            waitForElementVisibleId("passwordNext", 120);
+            clickId("passwordNext");
+
+            waitForElementVisibleId("totpPin", 120);
+            getIdSendKeys("totpPin", testOTP());
+
+            driver.findElement(By.id("totpPin")).sendKeys(Keys.RETURN);
+    }
+
+    //Check for continue or submit new link on non ceterus fin form page
+    public void financialFormClickContinueOrSubmitNew(){
+        boolean isElement1Present = true;
+        try{
+            clickPartialLink("Submit New");
+        }catch (NoSuchElementException e){
+            isElement1Present = false;
+        }
+        if(isElement1Present == false)
+            clickPartialLink("Continue");
+    }
+
+    //Check if an element is selected
+    public Boolean isElementSelectedName(String name){
+        waitForElementVisibleName(name, 120);
+
+        Boolean  isChecked = driver.findElement(By.name(name)).isSelected();
+
+      if(isChecked == true){
+          System.out.println(name + " is selected");
+      } else {
+          System.out.println(name + " is NOT selected");
+      }
+      return isChecked;
+    }
+
+
+    //Take a screenshot and save it to the resources file
+    public void takeScreenShot(){
+        try {
+            System.out.println("Taking screenshot...");
+            File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            FileUtils.copyFile(scrFile, new File(System.getProperty("user.dir") + "/src/test/resources/" + getTimeStamp() + "AutoScreenShot.png"));
+
+        }catch (Exception e){
+            System.out.println("Error during screenshot " + e);
+        }
+    }
+
+    //Return a random integer between 1 and 100
+    public Integer random1To100(){
+        Integer target = rangeOfRandomNum(1, 100);
+
+        return target;
+    }
+
+    //Range of random numbers
+    public Integer rangeOfRandomNum(Integer min, Integer max){
+        int range = (max - min) + 1;
+        return (int)(Math.random() * range) + min;
+    }
+
+    //Resize browser window, 1440x900
+    public void resizeWindow(Integer width, Integer height){
+        Dimension dim = new Dimension(width,height);
+        driver.manage().window().setSize(dim);
+    }
+
+    //Wait for element to be visible ID
+    public void waitForElementVisibleId(String id, Integer secondsToWait){
+        System.out.println("Waiting for element " + id + " to become visible...");
+        WebDriverWait wait = new WebDriverWait(driver, secondsToWait);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(id)));
+    }
+
+    //Wait for element to be visible Name
+    public void waitForElementVisibleName(String name, Integer secondsToWait){
+        System.out.println("Waiting for element " + name + " to become visible...");
+        WebDriverWait wait = new WebDriverWait(driver, secondsToWait);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name(name)));
+    }
+
+    //Wait for element to be visible CSS
+    public void waitForElementVisibleCss(String selector, Integer secondsToWait){
+        System.out.println("Waiting for element " + selector + " to become visible...");
+        WebDriverWait wait = new WebDriverWait(driver, secondsToWait);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
+    }
+    //Wait for element to contain text CSS
+    public void waitForElementContainsTextCss(String selector, String text){
+        WebDriverWait wait = new WebDriverWait(driver, 120);
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(By.cssSelector(selector),text));
+    }
+
+    //Wait for element to be visible xpath
+    public void waitForElementVisibleXpath(String xpath, Integer secondsToWait){
+        System.out.println("Waiting for element to become visible...");
+        WebDriverWait wait = new WebDriverWait(driver, secondsToWait);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
+    }
+
+    //Wait for condition attribute contains by Xpath
+    public void waitForConditionAttributeContainsXpath(String path, Integer secondsToWait, String attribute, String value){
+        WebDriverWait wait = new WebDriverWait(driver, secondsToWait);
+        wait.until(ExpectedConditions.attributeContains(By.xpath(path),attribute,value));
+    }
+
+    //Wait for condition attribute contains by ID
+    public void waitForConditionAttributeContainsId(String id, Integer secondsToWait, String attribute, String value){
+        System.out.println("Waiting for attribute " + attribute + " to obtain value " + value);
+        WebDriverWait wait = new WebDriverWait(driver, secondsToWait);
+        wait.until(ExpectedConditions.attributeContains(By.id(id),attribute,value));
+    }
+
+    //Alert
+    public void alert(){
+        Alert alert = driver.switchTo().alert();
+        alert.accept();
+    }
+
+    //Get year
+    public String getYear(){
+        String year = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+        System.out.println("Year " + year);
+        return year;
+    }
+
+    //Get month
+    public String getMonthNew(){
+        Date date = new Date();
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        Integer monthRaw = localDate.getMonthValue();
+        if(monthRaw > 9){
+            String month = monthRaw.toString();
+            return month;
+        }else{
+            String month = "0" + monthRaw;
+            System.out.println("Month " + month);
+            return month;
+        }
+    }
+
+    //Get date
+    public LocalDate getDate(){
+        LocalDate today = LocalDate.now();
+        System.out.println(today);
+        return today;
+    }
+
+    //Get time
+    public Timestamp getTimeStamp(){
+        Timestamp time = new Timestamp(System.currentTimeMillis());
+        System.out.println(time);
+        return time;
+    }
+
+    //Return OS type driver is running on
+    public String getOsName(){
+        if(osName == null){
+            osName = System.getProperty("os.name");
+        }
+        //System.out.println(osName);
+        return osName;
+    }
+
+    //Click the "Add QBO File Upload Account" link
+    public void clickAddQboFileUploadAccountLink(){
+        driver.findElement(By.partialLinkText("Add QBO File Upload Account")).click();
+    }
+
+    //DO NOT REMOVE
+    public void loggingOff(){
+        java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
+        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
     }
 
     //Click the Select Store for Report dropdown
     public void selectStoreReportDropdown(){
         Select dropDown = new Select(driver.findElement(By.xpath("//*[contains(@id, \"" + "adminselect2" + "\")]")));
-        //dropDown.selectByVisibleText("0047");
         dropDown.selectByVisibleText("AL American Fork - #0059");
-
     }
 
     //Click the Select Report Type dropdown
@@ -89,55 +408,144 @@ public class ToolBoxUtil {
         dropDown.selectByVisibleText("Profit and Loss");
     }
 
-
-
-    //Click the reports opiton from the hamburger on Ceterus Dashboard
-    public void clickReportsHamburger(){
-        driver.findElement(By.partialLinkText("Reports")).click();
+    //Get a URL
+    public void getUrl(String url){
+        driver.get(url);
+        System.out.println("Navigating to " + url);
     }
 
-    //Click the logout link on client side insight
-    public void clickClientLogout(){
-        driver.findElement(By.xpath("/html/body/div[1]/div/div/nav/section/ul[2]/li[2]/a")).click();
-
+    //Verify a URL
+    public void verifyUrl(String url){
+        String URL = driver.getCurrentUrl();
+        Assert.assertEquals(url,URL);
     }
 
-    //Click the Report Date dropdown
-    public void selectReportDateDropdown(){
-        //TODO Report Date is not selecting as expected
-        Select dropDown = new Select(driver.findElement(By.xpath("//*[@id=\"admindatelabel2\"]/select[1]")));
-        dropDown.selectByVisibleText("June");
+    //Check for text in URL
+    public void checkForTextTrueUrl(String text){
+        String URL = driver.getCurrentUrl();
+        assertTrue(text,true);
+        System.out.println(URL + " does contain " + text);
     }
 
-    //Click the Select Store dropdown
-    public void selectStoreDropdown(){
-        Select dropDown = new Select(driver.findElement(By.xpath("//*[@id=\"adminselect2\"]")));
-        dropDown.selectByVisibleText("AL Ashley Park - #0121");
+    //Get an element id and sendKeys
+    public void getIdSendKeys(String id, String keys){
+        driver.findElement(By.id(id)).sendKeys(keys);
+        System.out.println("Located " + id + " sending text " + keys);
+    }
+
+    //Get an element by css selector and sendKeys
+    public void getCssSelectorSendKeys(String selector, String keys){
+        driver.findElement(By.cssSelector(selector)).clear();
+        System.out.println("Clearing text");
+        driver.findElement(By.cssSelector(selector)).sendKeys(keys);
+        System.out.println("Located " + selector + " sending text " + keys);
+    }
+
+    //Get an element by xpath and sendKeys
+    public void getXpathSendKeys(String xpath, String keys){
+        driver.findElement(By.xpath(xpath)).sendKeys(keys);
+        System.out.println("Located " + xpath + " sending text " + keys);
+    }
+
+    //Get an element name and sendKeys
+    public void getNameSendKeys(String name, String keys){
+        driver.findElement(By.name(name)).clear();
+        System.out.println("Clearing text");
+        driver.findElement(By.name(name)).sendKeys(keys);
+        System.out.println("Located " + name + " sending text " + keys);
+    }
+
+    //Clear a field by Name
+    public void getNameClearText(String name){
+        driver.findElement(By.name(name)).clear();
+    }
+
+    //Clear a field by id
+    public void getIdClearText(String id){
+        driver.findElement(By.id(id)).clear();
+    }
+
+    //Clear a field by CSS Selector
+    public void getSelectorClearText(String cssSelector){driver.findElement(By.cssSelector(cssSelector)).clear();}
+
+    //Click the dropdown and select a value based on text
+    public void selectDropDownByIdText(String id, String text){
+        Select dropDown = new Select(driver.findElement(By.id(id)));
+        dropDown.selectByVisibleText(text);
+        System.out.println("Selecting drop down by text " + text);
+    }
+
+    //Click the dropdown and select a value based on text
+    public void selectDropDownByNameText(String name, String text){
+        Select dropDown = new Select(driver.findElement(By.name(name)));
+        dropDown.selectByVisibleText(text);
+        System.out.println("Selecting drop down by text " + text);
     }
 
     //Click the Upload Type dropdown and select a value
-    public void selectUploadTypeDropdown(){
-        Select dropDown = new Select(driver.findElement(By.xpath("//*[@id=\"adminselectreport\"]")));
-        //QBO is currently index value 5
-        dropDown.selectByIndex(5);
+    public void selectDropDownById(String id, String index){
+        Select dropDown = new Select(driver.findElement(By.id(id)));
+        //COA is currently index value 9
+        dropDown.selectByValue(index);
+        System.out.println("Selecting drop down value " + index);
     }
 
-    //Click the upload data option from the hamburger on Ceterus Dashboard
-    public void clickUploadDataHamburger() {driver.findElement(By.xpath("//*[@id=\"menu\"]/ul/li[3]/a")).click();}
-
-    //Click the stores option from hamburger on Ceterus Dashboard
-    public void clickStoresHamburger(){
-        driver.findElement(By.partialLinkText("Stores")).click();
+    //Click the drop down and select a value by xpath
+    public void selectDropDownByXpath(String xpath, String index){
+        Select dropDown = new Select(driver.findElement(By.xpath(xpath)));
+        dropDown.selectByValue(index);
+        System.out.println("Selecting drop down value " + index);
     }
 
-    //Click the logout option from hamburger on Ceterus Dashboard
-    public void clickLogoutHamburger(){
-        driver.findElement(By.partialLinkText("Logout")).click();
+    //Click the Upload Type dropdown and select a value
+    public void selectDropDownByName(String name, String index){
+        Select dropDown = new Select(driver.findElement(By.name(name)));
+        //COA is currently index value 9
+        dropDown.selectByValue(index);
+        System.out.println("Selecting drop down value " + index);
     }
 
-    //Click the hamburger on Ceterus Dashboard
-    public void clickHamburger(){
-        driver.findElement(By.xpath("//span[contains(@id, \"" + "menuToggle" + "\")]")).click();
+    public void clickPartialLink(String link){
+        driver.findElement(By.partialLinkText(link)).click();
+        System.out.println("Clicking " + link);
+    }
+
+    //Click an element by id
+    public void clickId(String id){
+        driver.findElement(By.id(id)).click();
+        System.out.println("Clicking " + id);
+    }
+
+    //Click an element by name
+    public void clickName(String name){
+        driver.findElement(By.name(name)).click();
+        System.out.println("Clicking " + name);
+    }
+
+    //Click an element by xpath
+    public void clickXpath(String xpath){
+        driver.findElement(By.xpath(xpath)).click();
+        System.out.println("Clicking " + xpath);
+    }
+
+    //Click an element by Css Selector
+    public void clickCssSelector(String selector){
+        driver.findElement(By.cssSelector(selector)).click();
+        System.out.println("Clicking " + selector);
+    }
+
+    //Click element using action and ID
+    public void clickElementUsingActionID(String id){
+        WebElement element = driver.findElement(By.id(id));
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element).click().perform();
+    }
+
+    //Click element using action and CSS Selector
+    public void clickElementUsingActionCssSelector(String selector) {
+        WebElement element = driver.findElement(By.cssSelector(selector));
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element).click().perform();
     }
 
     //Close the driver
@@ -146,31 +554,51 @@ public class ToolBoxUtil {
     //Access driver
     public WebDriver getDriver(){return driver;}
 
+    public RemoteWebDriver getRemoteDriver(){
+        //This MUST be cast to RemoteWebDriver to work
+        return (RemoteWebDriver) driver;
+    }
+
     //Set implicit Wait
     public void impWait(){
-        driver.manage().timeouts().implicitlyWait(45, TimeUnit.SECONDS);
-    }
-
-    //Set Expected Condition for "email_address"
-    public void setExpectedConEmailAddress(){
-        WebElement userNameTextInput = (new WebDriverWait(driver, 45))
-                .until(ExpectedConditions.presenceOfElementLocated(By.name("email_address")));
-    }
-
-    //Forgot password info
-    public void sendUserNameStoreNumber(){
-        driver.findElement(By.name("email_address")).sendKeys("ryanc@ceterus.com");
-        //Al McDowell Mountain Ranch #0047
-        //Locate Storenumber text input field
-        driver.findElement(By.xpath("/html/body/div/div/div[1]/form/input[2]")).sendKeys("0047");
+        driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
     }
 
     //Login as Super admin
     public void sendSuperAdminUserPassCeterus(){
+        waitForElementVisibleName("email_address", 20);
         driver.findElement(By.name("email_address")).sendKeys(superAdminUserName);
+        waitForElementVisibleName("password", 20);
         driver.findElement(By.name("password")).sendKeys(superAdminPassword);
         //Click login button
         driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/form/input[4]")).click();
+        System.out.println("Sending super admin login");
+    }
+
+    //Login as Mike B to Live Admin
+    public void sendMikeBUserPassLiveAdmin(){
+        driver.findElement(By.name("email_address")).sendKeys(mikeBlive);
+        driver.findElement(By.name("password")).sendKeys(mikeBlivePassword);
+        //Click login button
+        driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/form/input[4]")).click();
+        System.out.println("Sending super admin login");
+
+    }
+
+    //Login as Super Admin to Live Edge
+    public void sendSuperAdminUserPassEdge(){
+        driver.findElement(By.id("username-input")).sendKeys(superAdminUserName);
+        driver.findElement(By.id("password-input")).sendKeys(superAdminPassword);
+        clickSignInButton();
+        System.out.println("Sending super admin login");
+    }
+
+    //Login as Non edge client
+    public void sendNonEdgeClientUserPass(){
+        driver.findElement(By.id("username-input")).sendKeys(nonCeterusUserName);
+        driver.findElement(By.id("password-input")).sendKeys(nonCeterusPassword);
+        driver.findElement(By.id("sign-in-btn")).click();
+        System.out.println("Sending non ceterus login");
     }
 
     //Login as admin
@@ -179,6 +607,7 @@ public class ToolBoxUtil {
         driver.findElement(By.name("password")).sendKeys(admingPassword);
         //Click login button
         driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/form/input[4]")).click();
+        System.out.println("Sending admin login");
     }
 
     //Login as client controller
@@ -187,6 +616,7 @@ public class ToolBoxUtil {
         driver.findElement(By.name("password")).sendKeys(clientControllerPassword);
         //Click login button
         driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/form/input[4]")).click();
+        System.out.println("Sending client controller login");
     }
 
     //Login as data entry
@@ -195,341 +625,574 @@ public class ToolBoxUtil {
         driver.findElement(By.name("password")).sendKeys(dataEntryPassword);
         //Click login button
         driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/form/input[4]")).click();
+        System.out.println("Sending data entry login");
     }
 
-    //Login as client
+    //Login as client on old UI
     public void sendClientUserPassCeterus(){
         driver.findElement(By.name("email_address")).sendKeys(clientUserName);
         driver.findElement(By.name("password")).sendKeys(clientPassword);
         //Click login button
         driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/form/input[4]")).click();
+        System.out.println("Sending client login");
     }
 
-    //Target Ceterus Admin region
-    public void getUrlCeterusRegion(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_region.php");
+    //Login as client on verify web
+    public void sendClientUserPassEdge(){
+        driver.findElement(By.id("username-input")).sendKeys(superAdminUserName);
+        driver.findElement(By.id("password-input")).sendKeys(superAdminPassword);
+        clickSignInButton();
+        System.out.println("Sending client login");
     }
 
-    //Target Ceterus Admin process
-    public void getUrlCeterusProcess(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_process.php");
+    //Login as non ceterus user on verify web
+    public void sendNonCeterusUserPassEdge(){
+        driver.findElement(By.id("username-input")).sendKeys(nonCeterusUserName);
+        driver.findElement(By.id("password-input")).sendKeys(nonCeterusPassword);
+        clickSignInButton();
+        System.out.println("Sending non ceterus login");
     }
 
-    //Target Ceterus Admin process tasks
-    public void getUrlCeterusProcessTasks(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_process_tasks.php");
+    //Login as demo on live
+    public void sendDemoUsePassEdge(){
+        driver.findElement(By.id("username-input")).sendKeys(demoUserName);
+        driver.findElement(By.id("password-input")).sendKeys(demoUserPassword);
+        clickSignInButton();
+        System.out.println("Sending non ceterus login");
     }
 
-    //Target Ceterus Admin process task
-    public void getUrlCeterusProcessTask(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_process_task.php");
+    //Log in as i9 demo user
+    public void sendi9DemoUsePassEdge(){
+        driver.findElement(By.id("username-input")).sendKeys(i9DemoUSerName);
+        driver.findElement(By.id("password-input")).sendKeys(i9DemoPassword);
+        clickSignInButton();
+        System.out.println("Sending non ceterus login");
     }
 
-    //Target Ceterus Admin process task test
-    public void getUrlCeterusTaskTest(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_process_task_test.php");
+    //Log into EDGE on Verify Web as Client
+    public void logInToVerifyWebAsClient(){
+        impWait();
+        getUrlVerifyWeb();
+
+        sendClientUserPassEdge();
     }
 
-    //Target Ceterus Admin result items
-    public void getUrlCeterusResultItems(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_process_result_items.php");
+    //Log into Edge in Kellid Web as Client
+    public void logInToKellidWebAsClient(){
+        impWait();
+        getUrlKellidWeb();
+        sendClientUserPassCeterus();
+
     }
 
-    //Target Ceterus Admin process clone
-    public void getUrlCeterusProcessClone(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_process_clone.php");
+    //Log into EDGE on Verify Web as a NON ceterus user
+    public void logInToVerifyWebAsNonUser(){
+        impWait();
+        getUrlVerifyWeb();
+
+        sendNonCeterusUserPassEdge();
     }
 
-    //Target Ceterus Admin process result item
-    public void getUrlCeterusProcessResultItem(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_process_result_item.php");
+    //Log into Verify as i9 Demo User
+    public void logInToVerifyWebAsi9Demo(){
+        impWait();
+        getUrlVerifyWeb();
+        sendi9DemoUsePassEdge();
+
     }
 
-    //Target Ceterus Admin metrics
-    public void getUrlCeterusMetrics(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_metrics.php");
+    //Log into Ceterus Admin on Verify as Data Entry
+    public void logInToVerifyAsDataEntry(){
+        impWait();
+        getUrlVerifyCeterus();
+        twoFactorCeterusLogin();
+
+        sendDataEntryUserPassCeterus();
     }
 
-    //Target Ceterus Admin export
-    public void getUrlCeterusExport(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_export.php");
+    //Log into Ceterus Admin on Verify as Client Controller
+    public void logInToVerifyAsController(){
+        impWait();
+        getUrlVerifyCeterus();
+        twoFactorCeterusLogin();
+
+        sendClientControllerUserPassCeterus();
     }
 
-    //Target Ceterus Admin custom Metrics
-    public void getUrlCeterusAdminCustomMetrics(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_customMetrics.php");
+    //Log into Ceterus Admin on Ryanc as Super Admin
+    public void logInToRyancAsSuper(){
+        impWait();
+        System.out.println("Getting ryanc URL...");
+        getUrlRyancCeterus();
+        twoFactorCeterusLogin();
+        sendSuperAdminUserPassCeterus();
     }
 
-    //Target Ceterus Admin codes
-    public void getUrlCeterusAdminCodes(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_codes.php");
+    //Log into Ceterus Admin on Curreyt as Super Admin
+    public void logInToCurreytAsSuper(){
+        impWait();
+        System.out.println("Getting curreyt URL...");
+        getUrlCurreytCeterus();
+        twoFactorCeterusLogin();
+        sendSuperAdminUserPassCeterus();
     }
 
-    //Target Ceterus Admin code maps
-    public void getUrlCeterusAdminCodeMaps(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_code_maps.php");
+    //Log into Ceterus Admin on Verify as Admin
+    public void logInToVerifyAsAdmin(){
+        impWait();
+        getUrlVerifyCeterus();
+        twoFactorCeterusLogin();
+
+        sendAdminUserPassCeterus();
     }
 
-    //Target Ceterus Admin benchmarks
-    public void getUrlCeterusAdminBenchmark(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_benchmarks.php");
+    //Log into Ceterus Admin on Verify as Super Admin
+    public void logInToVerifyAsSuper(){
+        impWait();
+        getUrlVerifyCeterus();
+        twoFactorCeterusLogin();
+        sendSuperAdminUserPassCeterus();
+
     }
 
-    //Target Ceterus Admin benchmark items
-    public void getUrlCeterusAdminBenchmarkItems(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_benchmark_items.php");
+    //Log into Ceterus Admin on Verify as Super Admin with Try Catch 2Factor Auth
+    public void logInToVerifyAsSuperTwoFactor(){
+        try {
+            logInToVerifyAsSuper();
+
+        } catch (Exception e) {
+            System.out.println("The one time password may have timed out, trying again..." + e);
+            logInToVerifyAsSuper();
+        }
+
+        System.out.println("THIS TEST WORKED");
     }
 
-    //Target Ceterus Admin balance sheet
-    public void getUrlCeterusAdminBalanceSheet(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_balancesheet.php");
+    //Log into Ceterus Admin on Live as Super Admin with try catch 2Factor Auth
+    public void logInToLiveAsSuperTwoFactor(){
+        try{
+            logInToLiveAsSuper();
+        } catch (Exception e) {
+            System.out.println("OTP may have timed out, trying again..." + e);
+            logInToLiveAsSuper();
+        }
     }
 
-    //Target Ceterus Admin add update metrics
-    public void getUrlCeterusAdminAddUpdateMetric(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_addUpdate_metrics.php");
+    //Log Mike into Live
+    public void logMikeIntoLive(){
+        impWait();
+        getUrlLiveAdmin();
+        twoFactorCeterusLogin();
+
+        sendMikeBUserPassLiveAdmin();
     }
 
-    //Target Ceterus Admin add update custom metrics
-    public void getUrlCeterusAdminAddUpdateCustomMetrics(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_addUpdate_customMetrics.php");
+    //Log into Ceterus Admin on Live as Super Admin
+    public void logInToLiveAsSuper(){
+        impWait();
+        getUrlLiveAdmin();
+        twoFactorCeterusLogin();
+        sendSuperAdminUserPassCeterus();
     }
 
-    //Target Ceterus Admin maps
-    public void getUrlCeterusAdminMaps(){
-        driver.get("https://verify.ceterusinsight.com/admin/admin_maps.php");
+    //Log into Edge Front End on Live as Client
+    public void loginToLiveAsClient(){
+        impWait();
+        getUrlLiveEdge();
+
+        sendSuperAdminUserPassEdge();
     }
 
-    //Target Ceterus Admin search users
-    public void getUrlCeterusAdminSearchUsers() { driver.get("https://verify.ceterusinsight.com/admin/admin_search_users.php"); }
+    //Log into Ceterus Admin on Verify 2 as Super Admin
+    public void logInToVerify2AsSuper(){
+        impWait();
+        getUrlVerify2Ceterus();
+        twoFactorCeterusLogin();
 
-    //Target Ceterus Test URL
-    public void getUrlTestCeterus(){
-        driver.get("https://test.ceterusinsight.com/login.php");
+        sendSuperAdminUserPassCeterus();
+    }
+
+    //Log into Demo on Live
+    public void logInToLiveAsDemo(){
+        impWait();
+        getUrlLiveCeterus();
+
+        sendDemoUsePassEdge();
+
+    }
+
+    //Log user out and confirm user is on login page
+    public void logOutOfVerify(){
+        driver.get("http://verify.ceterusinsight.com/logout.php");
+    }
+
+    //Set default window size, implicit wait, and send Super admin login to verify
+    public void verifySuperProfile(){
+        resizeWindow(1440, 900);
+        impWait();
+        logInToVerifyAsSuper();
+    }
+
+    //Target Store 824 OT Test Verify Edit Store page
+    public void getUrl824OtTestEditStorePageVerify(){
+        driver.get("http://verify.ceterusinsight.com/admin/admin_stores.php?store_id=824");
     }
 
     //Target Ceterus Verify URL
     public void getUrlVerifyCeterus(){
-        driver.get("https://verify.ceterusinsight.com/login.php");
-//        Uncomment to turn up logging
-//        String bodyText = driver.findElement(By.tagName("body")).getText();
-//        String headText = driver.findElement(By.tagName("head")).getText();
-//        System.out.println(headText);
-//        System.out.println(bodyText);
+        driver.get(urlVerify);
     }
 
-    //Check for "Region"
-    public void checkRegionText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Region"));
+    //Target Ceterus Ryanc URL
+    public void getUrlRyancCeterus(){
+        driver.get(urlRyanc);
     }
 
-    //Check for "Automated Process"
-    public void checkAutomatedProcess(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Automated Process"));
+    //Target Ceterus Curreyt URL
+    public void getUrlCurreytCeterus(){
+        driver.get(urlCurreyt);
     }
 
-    //Check for "Create New Task"
-    public void checkProcessTasks(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Create New Task"));
+    //Target Ceterus Edge Verify Web
+    public void getUrlVerifyWeb(){
+        driver.get(urlVerifyWeb);
+    }
+    //Target Ceterus Kellid URL
+    public void getUrlKellidWeb(){
+        driver.get(urlKellidWeb);
     }
 
-    //Check title
-    public String getTitle(){
-        String retVal = driver.getTitle();
-        return retVal;
+    //Target Ceterus Ver2 URL
+    public void getUrlVerify2Ceterus(){
+        driver.get(urlVerify2);
     }
 
-    //Check for "Process Task"
-    public void checkTaskTest(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Process Task"));
+    //Target Ceterus Live URL
+    public void getUrlLiveCeterus(){
+        driver.get(urlLive);
     }
 
-    //Check for "Queue Items"
-    public void checkResultItems(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Queue Items"));
+    //Target Edge Live URL
+    public void getUrlLiveEdge(){
+        driver.get(urlLiveEdge);
     }
 
-    //Check for "Process Result Item"
-    public void checkProcessResult(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Process Result Item"));
+    //Target Ceterus Live Admin URL
+    public void getUrlLiveAdmin(){
+        driver.get(urlLiveAdmin);
     }
 
-    //Check for "Clone Automated Process"
-    public void checkCloneProcess(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Clone Automated Process"));
-    }
-
-    //Check for "Accounts"
-    public void checkAccountsText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Accounts"));
-    }
-
-    //Check for "Concept Account Number mapped to Standard Account Number"
-    public void checkConceptAccountNumberText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Concept Account Number mapped to Standard Account Number"));
-    }
-
-    //Check for "Export Data"
-    public void checkExportDataText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Export Data"));
-    }
-
-    //Check for "Add New Custom Metric"
-    public void checkNewCustomMetric(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Add New Custom Metric"));
-    }
-
-    //Check for "Account Number"
-    public void checkCodesText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Account Number"));
-    }
-
-    //Check for "Concept Chart of Accounts"
-    public void checkCodeMapsText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Concept Chart of Accounts"));
-    }
-
-    //Check for "Benchmark Year"
-    public void checkBenchMakrYearText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Benchmark Year"));
-    }
-
-    //Check for "Benchmark Item"
-    public void checkBenchMarkItemText(){
-        String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-        assertTrue(String.valueOf(true), bodyText.contains("Benchmark Item for"));
-    }
-
-    //Check for "Balance Sheet"
-    public void checkBalanceSheetText(){
+    //Check for "Exception Queue text"
+    public void checkUploadCOAText(){
         String bodyText = driver.findElement(By.tagName("body")).getText();
 
         //System.out.println(bodyText);
 
-        assertTrue(String.valueOf(true), bodyText.contains("Balance Sheet"));
+        assertTrue(String.valueOf(true), bodyText.contains("Updating Maps"));
     }
 
-    //Check for "Metric Data"
-    public void checkAddMetricDataText(){
+    //Check for "Crit Errors"
+    public void checkCritErrors(){
         String bodyText = driver.findElement(By.tagName("body")).getText();
 
         //System.out.println(bodyText);
 
-        assertTrue(String.valueOf(true), bodyText.contains("Metric Data"));
+        assertFalse(String.valueOf(true), bodyText.contains("Critical Error"));
     }
 
-    //Check for "Add Custom Metrics"
-    public void checkAddCustomMetricsText(){
+    //Check for "Errors"
+    public void checkErrorsText(){
+        String bodyText = driver.findElement(By.tagName("body")).getText();
+
+        if(bodyText.contains("Error")){
+            System.out.println("Error found on page!");
+        }
+
+        assertFalse(String.valueOf(true), bodyText.contains("Error"));
+
+    }
+
+    //Check for "Fatal Errors"
+    public void checkFatalErrors(){
+        String bodyText = driver.findElement(By.tagName("body")).getText();
+
+        if(bodyText.contains("Fatal error")){
+            System.out.println("Fatal error found on page!");
+        }
+
+        assertFalse(String.valueOf(true), bodyText.contains("Fatal error"));
+    }
+
+    //Check for all error text
+    public void checkForAllErrorText(){
+        System.out.println("Checking for errors on page...");
+
+        checkErrorsText();
+        checkFatalErrors();
+        checkCritErrors();
+    }
+
+    //Check for a string using Css Selector
+    public void checkForTextCss(String cssSelector, String text){
+        WebElement textCheck = driver.findElement(By.cssSelector(cssSelector));
+        assertTrue(textCheck.getText().contains(text));
+        System.out.println("text " + text + " found on page as expected");
+    }
+
+    //Check for a string using Xpath
+    public void checkForTextXpath(String xpath, String text){
+        WebElement textCheck = driver.findElement(By.xpath(xpath));
+        assertTrue(textCheck.getText().contains(text));
+        System.out.println("text " + text + " found on page as expected");
+    }
+
+    //Check for element using xpath
+    public void checkForElementUsingXpath(String path){
+        driver.findElement(By.xpath(path)).isDisplayed();
+        System.out.println("Element " + path + " is displayed");
+    }
+
+    //Check for element using Css Selector
+    public void checkForElementUsingCssSelector(String cssSelector){
+        driver.findElement(By.cssSelector(cssSelector)).isDisplayed();
+        System.out.println("Element " + cssSelector + " is displayed");
+    }
+
+    //Check if element is displayed by ID
+    public void checkForElementUsingId(String id){
+        driver.findElement(By.id(id)).isDisplayed();
+        System.out.println("Element " + id + " is displayed");
+    }
+
+    //Check if element is displayed by name
+    public void checkForElementUsingName(String name){
+        driver.findElement(By.name(name)).isDisplayed();
+        System.out.println("Element " + name + " is displayed");
+    }
+
+    //Check if element is displayed by tagName
+    public  void checkIfElementIsDisplayedTagName(String tagName){
+        driver.findElement(By.tagName(tagName)).isDisplayed();
+        System.out.println("Element " + tagName + " is displayed");
+    }
+
+    //Check that a string does NOT exist
+    public void checkForTextFalse(String text, String tagName){
+        String bodyText = driver.findElement(By.tagName(tagName)).getText();
+
+        assertFalse(String.valueOf(true), bodyText.contains(text));
+
+        System.out.println(tagName + " does NOT contain " + text);
+    }
+
+    //Check that string DOES exist
+    public void checkForTextTrue(String text, String tagName){
+        String bodyText = driver.findElement(By.tagName(tagName)).getText();
+
+        assertTrue(String.valueOf(true), bodyText.contains(text));
+
+        System.out.println(tagName + " does contain " + text);
+    }
+
+    //Check expected title vs actual title
+    public void checkTitle(String title){
+        String actualTitle = driver.getTitle();
+        String expectedTitle = title;
+        assertEquals(expectedTitle, actualTitle);
+        System.out.println("Title is " + actualTitle);
+    }
+
+    //Check for Cash/Credit Clearing Validation text
+    public void checkCashCreditClearingValidationText(){
         String bodyText = driver.findElement(By.tagName("body")).getText();
 
         //System.out.println(bodyText);
 
-        assertTrue(String.valueOf(true), bodyText.contains("Add Custom Metrics"));
+        assertTrue(String.valueOf(true), bodyText.contains("Cash/Credit Clearing Validation"));
     }
 
-    //Check for Notice text
-    public void checkNoticeText(){
-       String bodyText = driver.findElement(By.tagName("body")).getText();
-
-        System.out.println(bodyText);
-
-         assertFalse(String.valueOf(true), bodyText.contains("Notice"));
+    //Click the store drop down on cash/credit clearing validation
+    public void selectStoreCashCreditClearingValidation(){
+        Select dropDown = new Select(driver.findElement(By.id("store_select")));
+        //Select a report for yesterday
+        dropDown.selectByValue("826");
     }
 
-    //Check for "You tried to access an area of the system not allowed with your security clearance"
-    public void checkSecurityClearanceText(){
+    //Check for "Running Difference"
+    public void checkRunningDiffText(){
         String bodyText = driver.findElement(By.tagName("body")).getText();
 
-        System.out.println(bodyText);
+        //System.out.println(bodyText);
 
-        assertTrue(String.valueOf(true), bodyText.contains("You tried to access an area of the system not allowed with your security clearance."));
+        assertTrue(String.valueOf(true), bodyText.contains("Running Difference"));
     }
 
-    //Check for "You do not have access to this area!"
-    public void checkDoNotHaveAccessText(){
+    //Click the Upload Type dropdown and select a value
+    public void selectDropDownByIdValueByVisibleText(String id, String text){
+        Select dropDown = new Select(driver.findElement(By.id(id)));
+        //COA is currently index value 9
+        dropDown.selectByVisibleText(text);
+        System.out.println("Selecting drop down value " + text);
+    }
+
+    //Go to store 824 POS Import page
+    public void getUrlPosImportPage824(){
+        driver.get("http://verify.ceterusinsight.com/admin/pos/pos_transaction_import.php?store_id=824");
+    }
+
+    //Go to BOT Tracking site
+    public void getUrlBotTracking(){
+        driver.get("http://verify.ceterusinsight.com/admin/bot_tracking.php");
+    }
+
+    //Go to Exception Queue site
+    public void getUrlExceptionQueue(){
+        driver.get("http://verify.ceterusinsight.com/admin/exception_queue.php?store_id=824");
+    }
+
+    //Check for "Exception Queue text"
+    public void checkExceptionQueueText(){
+        String bodyText = driver.findElement(By.id("pagetitle")).getText();
+
+        //System.out.println(bodyText);
+
+        assertTrue(String.valueOf(true), bodyText.contains("Exception Queue"));
+    }
+
+    //Check for "Failed Connection"
+    public void checkFailedConnection(){
         String bodyText = driver.findElement(By.tagName("body")).getText();
 
-        System.out.println(bodyText);
+        //System.out.println(bodyText);
 
-        assertTrue(String.valueOf(true), bodyText.contains("You do not have access to this area!"));
+        assertFalse(String.valueOf(true), bodyText.contains("Failed to connect"));
     }
 
-    //Check header text
-    public void checkHeaderText(){
-        String headerText = driver.findElement(By.tagName("title")).getText();
-
-        System.out.println(headerText);
-
-        assertTrue(String.valueOf(true), headerText.contains("Ceterus Franchise Accounting"));
+    //Find the description field and enter Test1 string
+    public void enterStringDescriptionField(){
+        driver.findElement(By.xpath("//*[@id=\"description_2\"]")).sendKeys("Test1");
     }
 
-    //Check for reset instructions text
-    public void checkResetInstructionsText(){
+    //Find the concept account number field and enter 10000 string
+    public void enterStringConceptAccountNumberField(){
+        driver.findElement(By.id("account_number_2")).sendKeys("10000");
+    }
+
+    //Find the debit field and enter 100 string
+    public void enterStringDebitField(){
+        driver.findElement(By.id("debit_2")).sendKeys("100");
+    }
+
+    //Find the 2nd description field and enter Test2 string
+    public void enterStringSecondDescriptionField(){
+        driver.findElement(By.id("description_3")).sendKeys("Test2");
+    }
+
+    //Find the 2nd concept account number field and enter 10002 string
+    public void enterStringSecondConceptAccountNumberField(){
+        driver.findElement(By.id("account_number_3")).sendKeys("10002");
+    }
+
+    //Find the credit field and enter 99 string
+    public void enterStringCreditField(){
+        driver.findElement(By.id("credit_3")).sendKeys("99");
+
+    }
+
+    //Check for "Debits must equal to the sum of all Credits"
+    public void checkMustEqualSumText(){
         String bodyText = driver.findElement(By.tagName("body")).getText();
 
-        System.out.println(bodyText);
+        //System.out.println(bodyText);
 
-        assertFalse(String.valueOf(true), bodyText.contains("Password reset instructions sent to your email address."));
+        assertTrue(String.valueOf(true), bodyText.contains("Debits must equal to the sum of all Credits"));
     }
 
+    //Get attribute from web element through css selector
+    public String getAttributeFromWebElement(String cssSelector, String attribute){
+        WebElement onElement = driver.findElement(By.cssSelector(cssSelector));
+
+        String returnAttribute = onElement.getAttribute(attribute);
+
+        return returnAttribute;
+    }
+
+    //Hide Chatlio widget
+    public void hideChatlioWidget(){
+        JavascriptExecutor js = (JavascriptExecutor)driver;
+        js.executeScript("var widget = document.getElementById('chatlio-widget');\n" +
+                "if (widget) widget.style.display = 'none';");
+        js.executeScript("var widget = document.getElementById('chatlio-widget');\n" +
+                "if (widget) widget.parentNode.removeChild(widget);");
+        System.out.println("Hiding Chatlio widget....");
+    }
+
+
+    //Execute Java Script
+    public void executeJavaScript(String javascript){
+        JavascriptExecutor js = (JavascriptExecutor)driver;
+        js.executeScript(javascript);
+
+    }
+
+    //Get Text Using CSS
+    public String getTextUsingCss(String selector){
+
+        String uiText = driver.findElement(By.cssSelector(selector)).getText();
+
+        return uiText;
+    }
+
+    public void clickSignInButton(){
+        driver.findElement(By.className("at-sign-in-btn")).click();
+
+    }
+
+    //Connect to db
+    public Connection verifyDataBaseConnection() {
+        String dBVerify = "jdbc:mysql://35.188.77.255:3306/clone";
+        String uName = "root";
+        String pWord = "WwhPPGG4eGS1oMrcZ3nuED1f4yGe6Cmk";
+
+        Connection connection = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            connection = DriverManager.getConnection(dBVerify, uName, pWord);
+
+        } catch (Exception e) {
+            System.out.println("Error during db connection..." + e);
+        }
+
+        return connection;
+    }
+
+    String dBLive = "jdbc:mysql://104.154.188.54:3306/db_live";
+    String uName = "readonly";
+    String pWord = "druc5ecraYukaTHamasa85ta7epru4uy";
+
+    //Check to see if controller BOT starts with no errors
+    public void checkControllerStartsNoErrors(String controller){
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            Connection con= DriverManager.getConnection(dBLive, uName, pWord);
+
+            Statement stmt = con.createStatement();
+
+            ResultSet rs = stmt.executeQuery("SELECT * FROM bots WHERE bot = '"+controller+"' and status = 1 AND minion_running = 0");
+
+            if(rs.next()) {
+                System.out.println(rs.getString("bot") + " controller is running in edge");
+
+                Assert.assertEquals(rs.getString("bot"), controller);
+            }
+
+            con.close();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
 }
 
